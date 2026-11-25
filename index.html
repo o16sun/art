@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ArtBridge | 書道・絵画・立体アートのSNS＆自動取次マーケット</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts (Inter & Noto Sans JP & Shippori Mincho) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Inter"', '"Noto Sans JP"', 'sans-serif'],
+            serif: ['"Shippori Mincho"', 'serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f5f7fa',
+              100: '#eaeef4',
+              500: '#1e293b',
+              600: '#0f172a',
+              accent: '#e11d48', // メルカリ・アートギャラリー風のアクセントレッド
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* スクロールバー非表示（横スクロールカルーセル・サムネイル用） */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* スムーズなタップハイライト無効化 */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* モーダルアニメーション */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.22s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased selection:bg-rose-100 selection:text-rose-900">
+
+  <!-- アプリ全体のコンテナ（モバイル〜デスクトップ中央寄せSNSレイアウト） -->
+  <div id="app" class="min-h-screen max-w-xl mx-auto bg-white border-x border-slate-200/80 shadow-sm relative pb-24">
+
+    <!-- トップヘッダー（固定） -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
+      <div class="px-4 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-bold text-lg shadow-sm">
+            墨
+          </div>
+          <div>
+            <h1 class="font-bold text-base tracking-tight text-slate-900 leading-none">ArtBridge</h1>
+            <p class="text-[10px] text-slate-500 font-medium mt-0.5">手数料5%・自動取次アートSNS</p>
+          </div>
+        </div>
+
+        <!-- 取引中ルーム一覧ボタン -->
+        <button onclick="openActiveTradesModal()" class="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-semibold transition">
+          <i data-lucide="package-check" class="w-4 h-4 text-rose-600"></i>
+          <span>取引ルーム</span>
+          <span id="active-trade-badge" class="hidden w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] flex items-center justify-center font-bold">1</span>
+        </button>
+      </div>
+
+      <!-- カテゴリフィルタータブ（IMG_3866.png風のすっきりしたタブUI） -->
+      <div class="flex border-t border-slate-100 overflow-x-auto no-scrollbar text-xs font-semibold">
+        <button onclick="setCategoryFilter('ALL')" data-cat="ALL" class="cat-tab flex-1 py-2.5 px-3 text-center border-b-2 border-slate-900 text-slate-900 whitespace-nowrap transition">
+          すべて
+        </button>
+        <button onclick="setCategoryFilter('書道')" data-cat="書道" class="cat-tab flex-1 py-2.5 px-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap transition">
+          書道
+        </button>
+        <button onclick="setCategoryFilter('絵画')" data-cat="絵画" class="cat-tab flex-1 py-2.5 px-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap transition">
+          絵画
+        </button>
+        <button onclick="setCategoryFilter('3Dアート')" data-cat="3Dアート" class="cat-tab flex-1 py-2.5 px-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap transition">
+          3Dアート・立体
+        </button>
+      </div>
+    </header>
+
+    <!-- タイムライン（フィード）エリア -->
+    <main id="feed-container" class="divide-y divide-slate-200/80">
+      <!-- JavaScriptで動的に投稿カードを描画 -->
+    </main>
+
+    <!-- 右下フローティング「＋（新規作品出品）」ボタン（IMG_3866.png準拠） -->
+    <button
+      onclick="openCreatePostModal()"
+      aria-label="新規作品を出品・投稿"
+      class="fixed bottom-6 right-6 sm:right-[calc(50%-16.5rem)] z-30 w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-600 active:scale-95 text-white shadow-lg shadow-sky-500/30 flex items-center justify-center transition-all duration-150">
+      <i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i>
+    </button>
+
+  </div>
+
+  <!-- =====================================================================
+       1. ダークギャラリー詳細＆下部サムネイル一覧モーダル（IMG_3867.png 再現）
+  ====================================================================== -->
+  <div id="gallery-modal" class="fixed inset-0 z-50 bg-black text-white hidden flex-col justify-between overflow-y-auto">
+    <!-- 上部ナビゲーションバー（IMG_3867.png風の戻るボタン＆メニュー） -->
+    <div class="sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-black/80 backdrop-blur-md">
+      <button onclick="closeGalleryModal()" class="w-10 h-10 rounded-full bg-zinc-900/90 hover:bg-zinc-800 flex items-center justify-center text-white transition">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+      </button>
+      <div class="flex items-center gap-2">
+        <span id="gal-category-badge" class="px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-200 text-xs font-medium">書道</span>
+        <span id="gal-status-badge" class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">販売中</span>
+      </div>
+      <button onclick="showToast('作品リンクをクリップボードにコピーしました')" class="w-10 h-10 rounded-full bg-zinc-900/90 hover:bg-zinc-800 flex items-center justify-center text-white transition">
+        <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- メイン画像表示エリア（左右スワイプ・タップ対応） -->
+    <div class="flex-1 flex flex-col items-center justify-center px-2 py-2 relative select-none">
+      <div id="gal-main-image-wrapper" class="w-full max-w-lg aspect-square sm:aspect-[4/3] bg-zinc-950 rounded-2xl overflow-hidden flex items-center justify-center relative border border-zinc-800/80 shadow-2xl">
+        <img id="gal-main-image" src="" alt="作品メイン画像" class="w-full h-full object-contain transition-all duration-200" />
+        <!-- 画像キャプション（角度・詳細説明） -->
+        <div id="gal-image-label" class="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-black/70 backdrop-blur-sm text-xs text-zinc-200 border border-white/10">
+          正面全体
+        </div>
+        <!-- 枚数インジケーター -->
+        <div id="gal-image-counter" class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-sm text-xs text-zinc-300 font-mono">
+          1 / 4
+        </div>
+      </div>
+
+      <!-- ★重要要件：すぐ下に複数画像のサムネイルが横並び（スクロール・タップ切り替え可能） -->
+      <div class="w-full max-w-lg mt-4 px-2">
+        <div id="gal-thumbnails" class="flex items-center justify-start sm:justify-center gap-2.5 overflow-x-auto no-scrollbar py-1.5 px-1">
+          <!-- JSでサムネイルボタンを生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 下部作家情報・コメント・SNSアクション＆購入ボタン（IMG_3867.pngレイアウト） -->
+    <div class="bg-zinc-950 border-t border-zinc-800/90 px-4 pt-4 pb-6 space-y-4">
+      <div class="max-w-lg mx-auto space-y-3">
+        <!-- 作家プロフィール行 -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <img id="gal-avatar" src="" alt="作家アイコン" class="w-10 h-10 rounded-full object-cover border border-zinc-700" />
+            <div>
+              <div class="flex items-center gap-1">
+                <span id="gal-author" class="font-bold text-sm text-white">作家名</span>
+                <i data-lucide="badge-check" class="w-4 h-4 text-sky-400 fill-sky-400/20"></i>
+              </div>
+              <p id="gal-handle" class="text-xs text-zinc-400">@handle</p>
+            </div>
+          </div>
+          <button id="gal-follow-btn" onclick="toggleFollowInGallery()" class="px-4 py-1.5 rounded-full bg-white text-black font-bold text-xs hover:bg-zinc-200 transition">
+            フォローする
+          </button>
+        </div>
+
+        <!-- 作品タイトル＆解説文 -->
+        <div>
+          <h2 id="gal-title" class="font-bold text-base text-white mb-1">作品タイトル</h2>
+          <p id="gal-description" class="text-sm text-zinc-300 leading-relaxed">作品コメント</p>
+        </div>
+
+        <!-- SNSリアクション行（IMG_3867.png風のアイコン並び） -->
+        <div class="flex items-center justify-between pt-1 pb-2 text-zinc-400 border-b border-zinc-800/80">
+          <button onclick="focusCommentInput()" class="flex items-center gap-1.5 hover:text-sky-400 transition text-xs">
+            <i data-lucide="message-circle" class="w-4 h-4"></i>
+            <span id="gal-comment-count">12</span>
+          </button>
+          <button onclick="showToast('作品をリポストしました')" class="flex items-center gap-1.5 hover:text-emerald-400 transition text-xs">
+            <i data-lucide="repeat-2" class="w-4 h-4"></i>
+            <span id="gal-repost-count">48</span>
+          </button>
+          <button id="gal-like-btn" onclick="toggleLikeCurrentPost()" class="flex items-center gap-1.5 hover:text-rose-500 transition text-xs">
+            <i data-lucide="heart" class="w-4 h-4"></i>
+            <span id="gal-like-count">320</span>
+          </button>
+          <button onclick="showToast('ブックマークに保存しました')" class="flex items-center gap-1.5 hover:text-amber-400 transition text-xs">
+            <i data-lucide="bookmark" class="w-4 h-4"></i>
+          </button>
+          <button onclick="showToast('共有用URLをコピーしました')" class="flex items-center gap-1.5 hover:text-white transition text-xs">
+            <i data-lucide="share" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- コメント簡易表示＆投稿欄 -->
+        <div id="gal-comments-list" class="space-y-1.5 max-h-24 overflow-y-auto text-xs text-zinc-300">
+          <!-- JSでコメント挿入 -->
+        </div>
+        <div class="flex items-center gap-2">
+          <input id="gal-comment-input" type="text" placeholder="作家への感想や質問をポスト..." class="flex-1 bg-zinc-900 border border-zinc-800 rounded-full px-4 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600" />
+          <button onclick="submitGalleryComment()" class="px-3.5 py-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white transition">
+            送信
+          </button>
+        </div>
+
+        <!-- 目立つ購入手続きボタン（メルカリ風CTA） -->
+        <div class="pt-2">
+          <button id="gal-buy-btn" onclick="openCheckoutModal()" class="w-full py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-rose-600/30 flex items-center justify-between transition">
+            <span class="flex items-center gap-2">
+              <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+              <span>購入手続きへ進む（自動取次）</span>
+            </span>
+            <span id="gal-price-label" class="text-base font-extrabold tracking-tight">¥30,000</span>
+          </button>
+          <p class="text-[11px] text-zinc-400 text-center mt-1.5">
+            ※事務局の自動エスクロー仲介により、作品到着・受取評価まで代金は安全に保護されます
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       2. メルカリ風 購入手続き＆5%手数料シミュレーションモーダル
+  ====================================================================== -->
+  <div id="checkout-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-fade-in">
+      <!-- ヘッダー -->
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-[11px] font-bold">自動取次決済</span>
+          <h3 class="font-bold text-base text-slate-900">購入内容の確認</h3>
+        </div>
+        <button onclick="closeCheckoutModal()" class="p-1.5 rounded-full hover:bg-slate-200 text-slate-500 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- スクロールコンテンツ -->
+      <div class="p-5 overflow-y-auto space-y-5 text-sm">
+        <!-- 取引ステップインジケーター（メルカリ風4段階） -->
+        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-400">
+            <div class="flex flex-col items-center text-rose-600">
+              <div class="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center mb-1">1</div>
+              <span>購入手続き</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-slate-200 mx-1"></div>
+            <div class="flex flex-col items-center">
+              <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-1">2</div>
+              <span>仮払い・発送</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-slate-200 mx-1"></div>
+            <div class="flex flex-col items-center">
+              <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-1">3</div>
+              <span>受取評価</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-slate-200 mx-1"></div>
+            <div class="flex flex-col items-center">
+              <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-1">4</div>
+              <span>取引完了</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 対象作品サマリー -->
+        <div class="flex items-center gap-3.5 p-3 rounded-2xl border border-slate-200 bg-white">
+          <img id="chk-thumb" src="" alt="作品サムネイル" class="w-16 h-16 rounded-xl object-cover bg-slate-100 border border-slate-200" />
+          <div class="flex-1 min-w-0">
+            <span id="chk-cat" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">書道</span>
+            <h4 id="chk-title" class="font-bold text-slate-900 truncate mt-1">作品タイトル</h4>
+            <p id="chk-author" class="text-xs text-slate-500">出品者: 作家名</p>
+          </div>
+        </div>
+
+        <!-- ★重要要件：5%プラットフォーム手数料・透明化内訳ボックス -->
+        <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <i data-lucide="calculator" class="w-4 h-4 text-slate-500"></i>
+              取引金額・自動取次手数料（5%）内訳
+            </span>
+            <span class="text-[11px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-semibold">送料込み</span>
+          </div>
+          <div class="border-t border-slate-200 pt-2.5 space-y-2 text-xs">
+            <div class="flex justify-between text-slate-700">
+              <span>作品販売価格（購入者お支払い額）</span>
+              <span id="chk-price" class="font-bold text-sm text-slate-900">¥30,000</span>
+            </div>
+            <div class="flex justify-between text-slate-500">
+              <span>├ プラットフォーム自動取次手数料（5%）</span>
+              <span id="chk-fee" class="font-medium text-rose-600">¥1,500</span>
+            </div>
+            <div class="flex justify-between text-slate-500">
+              <span>└ 出品者（作家）への自動送金予定額（95%）</span>
+              <span id="chk-payout" class="font-medium text-slate-700">¥28,500</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 支払い方法選択（銀行振込・コンビニ払い＋Stripeカード準備中バッジ） -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700">お支払い方法を選択</label>
+          <div class="space-y-2">
+            <label class="flex items-center justify-between p-3 rounded-xl border-2 border-slate-900 bg-slate-50 cursor-pointer">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="payment_method" value="コンビニ払い（自動番号発行）" checked class="w-4 h-4 text-slate-900 accent-slate-900" />
+                <div>
+                  <p class="font-bold text-xs text-slate-900">コンビニ払い（即時自動取次）</p>
+                  <p class="text-[11px] text-slate-500">セブン / ローソン / ファミマ対応・手数料無料</p>
+                </div>
+              </div>
+              <i data-lucide="store" class="w-5 h-5 text-slate-700"></i>
+            </label>
+
+            <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-slate-300 cursor-pointer">
+              <div class="flex items-center gap-3">
+                <input type="radio" name="payment_method" value="銀行振込（専用バーチャル口座）" class="w-4 h-4 text-slate-900 accent-slate-900" />
+                <div>
+                  <p class="font-bold text-xs text-slate-900">銀行振込（専用バーチャル口座）</p>
+                  <p class="text-[11px] text-slate-500">入金検知後、自動で出品者に発送通知を送信</p>
+                </div>
+              </div>
+              <i data-lucide="landmark" class="w-5 h-5 text-slate-500"></i>
+            </label>
+
+            <!-- クレジットカード決済（Stripe連携予定・準備中オプション） -->
+            <div class="flex items-center justify-between p-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/50 opacity-75">
+              <div class="flex items-center gap-3">
+                <input type="radio" disabled class="w-4 h-4" />
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <p class="font-bold text-xs text-slate-600">クレジットカード決済</p>
+                    <span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[10px] font-bold">Stripe連携予定・準備中</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">Visa / Mastercard / JCB / Apple Pay（近日対応）</p>
+                </div>
+              </div>
+              <i data-lucide="credit-card" class="w-5 h-5 text-slate-400"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- お届け先（自動匿名配送） -->
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600 shrink-0"></i>
+            <div>
+              <p class="font-bold text-slate-800">匿名アート配送（自動宛名コード発行）</p>
+              <p class="text-slate-500 text-[11px]">〒150-0001 東京都渋谷区神宮前 1-2-3（購入者様）</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 確定フッターボタン -->
+      <div class="p-4 border-t border-slate-200 bg-white">
+        <button onclick="confirmPurchaseAndCreateRoom()" class="w-full py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-rose-600/25 flex items-center justify-center gap-2 transition">
+          <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+          <span>購入を確定して専用取引ルームを開く</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       3. メルカリ風「専用取引ルーム（自動取次チャット＆ステータス管理）」モーダル
+  ====================================================================== -->
+  <div id="trade-room-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden h-[90vh] flex flex-col animate-fade-in">
+      <!-- ヘッダー -->
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h3 class="font-bold text-sm">専用取引ルーム（自動取次システム）</h3>
+          </div>
+          <p id="room-trade-id" class="text-[11px] text-slate-400 font-mono mt-0.5">ID: #AB-2026-8841</p>
+        </div>
+        <button onclick="closeTradeRoomModal()" class="p-1.5 rounded-full hover:bg-slate-800 text-slate-300 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- 取引進行ステップバー（インタラクティブ） -->
+      <div class="bg-slate-50 px-5 py-3.5 border-b border-slate-200">
+        <div class="flex items-center justify-between text-[11px] font-bold">
+          <div id="step-1-ind" class="flex flex-col items-center text-emerald-600">
+            <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mb-1">✓</div>
+            <span>仮払い完了</span>
+          </div>
+          <div id="line-1-2" class="flex-1 h-0.5 bg-emerald-500 mx-1"></div>
+          <div id="step-2-ind" class="flex flex-col items-center text-rose-600">
+            <div class="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center mb-1">2</div>
+            <span>発送待ち</span>
+          </div>
+          <div id="line-2-3" class="flex-1 h-0.5 bg-slate-200 mx-1"></div>
+          <div id="step-3-ind" class="flex flex-col items-center text-slate-400">
+            <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-1">3</div>
+            <span>受取評価</span>
+          </div>
+          <div id="line-3-4" class="flex-1 h-0.5 bg-slate-200 mx-1"></div>
+          <div id="step-4-ind" class="flex flex-col items-center text-slate-400">
+            <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-1">4</div>
+            <span>送金完了</span>
+          </div>
+        </div>
+
+        <!-- 現在のステータスに応じたワンクリック進行シミュレーションパネル -->
+        <div id="room-action-banner" class="mt-3 p-3 rounded-xl bg-white border border-rose-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div>
+            <p id="room-status-title" class="text-xs font-bold text-slate-900">出品者へ自動発送依頼を送信しました</p>
+            <p id="room-status-desc" class="text-[11px] text-slate-500">デモ操作：下のボタンで出品者の「発送完了」をシミュレートできます</p>
+          </div>
+          <button id="room-next-step-btn" onclick="advanceTradeStep()" class="shrink-0 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm">
+            発送通知を送る（出品者側）
+          </button>
+        </div>
+      </div>
+
+      <!-- 作品＆5%手数料精算サマリーバー -->
+      <div class="px-4 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <img id="room-thumb" src="" class="w-9 h-9 rounded-lg object-cover border border-slate-200" />
+          <div class="truncate">
+            <p id="room-title" class="font-bold text-slate-900 truncate">作品名</p>
+            <p id="room-breakdown" class="text-[11px] text-slate-500">総額 ¥30,000（手数料5%: ¥1,500 / 作家受取: ¥28,500）</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 自動取次チャットログ -->
+      <div id="room-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/60">
+        <!-- JSでメッセージ履歴を描画 -->
+      </div>
+
+      <!-- メッセージ入力欄 -->
+      <div class="p-3 border-t border-slate-200 bg-white flex items-center gap-2">
+        <input id="room-chat-input" type="text" placeholder="取引メッセージを送信（梱包の希望など）..." class="flex-1 bg-slate-100 border border-slate-200 rounded-full px-4 py-2 text-xs focus:outline-none focus:bg-white focus:border-slate-400" />
+        <button onclick="sendRoomMessage()" class="p-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white transition">
+          <i data-lucide="send" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       4. 新規作品出品（SNS投稿）モーダル（＋ボタンから起動）
+  ====================================================================== -->
+  <div id="create-post-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-fade-in">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <button onclick="closeCreatePostModal()" class="text-sm font-medium text-slate-500 hover:text-slate-800">キャンセル</button>
+        <h3 class="font-bold text-base text-slate-900">作品を出品・ポスト</h3>
+        <button onclick="submitNewArtworkPost()" class="px-4 py-1.5 rounded-full bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold shadow-sm transition">
+          投稿する
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-sm">
+        <!-- カテゴリ選択 -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">アートカテゴリ</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="new_category" value="書道" checked onchange="updatePresetPreview()" class="peer sr-only" />
+              <div class="py-2 text-center rounded-xl border border-slate-200 peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white text-xs font-bold transition">
+                書道
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="new_category" value="絵画" onchange="updatePresetPreview()" class="peer sr-only" />
+              <div class="py-2 text-center rounded-xl border border-slate-200 peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white text-xs font-bold transition">
+                絵画
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="new_category" value="3Dアート" onchange="updatePresetPreview()" class="peer sr-only" />
+              <div class="py-2 text-center rounded-xl border border-slate-200 peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white text-xs font-bold transition">
+                3Dアート
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 作品タイトル -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">作品タイトル</label>
+          <input id="new-title" type="text" placeholder="例：『風雅の書』特注和紙・額装済み" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900" />
+        </div>
+
+        <!-- 作品紹介コメント（SNSキャプション） -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">作品コメント・制作背景</label>
+          <textarea id="new-desc" rows="3" placeholder="作品のコンセプトやサイズ、素材、角度ごとの見どころを記載してください..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900"></textarea>
+        </div>
+
+        <!-- 複数角度サンプル画像セット選択（画像切れなしの生成アートSVGセット） -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-bold text-slate-700">作品写真セット（複数枚・横スクロール表示）</label>
+            <span class="text-[11px] text-slate-400">4枚セット自動生成</span>
+          </div>
+          <div id="new-photo-preview-strip" class="flex gap-2 overflow-x-auto no-scrollbar p-2 rounded-xl bg-slate-50 border border-slate-200">
+            <!-- JSで選択カテゴリのプレビュー4枚を表示 -->
+          </div>
+        </div>
+
+        <!-- 販売価格＆5%手数料リアルタイム自動計算 -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">販売希望価格（税込・送料込み）</label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-500">¥</span>
+              <input id="new-price" type="number" min="500" step="500" value="20000" oninput="recalculateNewPostFee()" class="w-full pl-8 pr-4 py-2.5 rounded-xl border border-slate-300 bg-white font-bold text-base text-slate-900 focus:outline-none focus:border-slate-900" />
+            </div>
+          </div>
+
+          <div class="border-t border-slate-200 pt-2.5 space-y-1.5 text-xs">
+            <div class="flex justify-between text-slate-500">
+              <span>自動取次プラットフォーム手数料（5%）</span>
+              <span id="new-calc-fee" class="font-semibold text-rose-600">- ¥1,000</span>
+            </div>
+            <div class="flex justify-between items-center text-slate-900 font-bold pt-1">
+              <span>あなたの受取利益（95%）</span>
+              <span id="new-calc-profit" class="text-base text-emerald-600">¥19,000</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- トースト通知（alert代替） -->
+  <div id="toast-banner" class="fixed top-16 left-1/2 -translate-x-1/2 z-[60] bg-slate-900/95 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl border border-white/10 opacity-0 pointer-events-none transition-all duration-200">
+    通知メッセージ
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. 高精細アートSVGデータURIジェネレーター（外部画像切れを100%防止）
+    // =========================================================================
+    function createArtDataUri(type, variant, bgHex, accentHex, titleText) {
+      let innerSvg = '';
+      if (type === '書道') {
+        if (variant === 0) {
+          // 正面・掛け軸風
+          innerSvg = `
+            <rect x="130" y="30" width="240" height="440" rx="4" fill="#e7e0d2" stroke="#8c7a5b" stroke-width="4"/>
+            <rect x="155" y="65" width="190" height="350" fill="#faf8f5"/>
+            <path d="M250 110 C245 145, 260 170, 240 205 M215 155 C245 150, 275 148, 290 155 M250 210 C235 255, 210 295, 195 335 M248 235 C270 275, 295 310, 315 340" stroke="#18181b" stroke-width="14" stroke-linecap="round" fill="none"/>
+            <circle cx="295" cy="365" r="10" fill="#dc2626"/>
+          `;
+        } else if (variant === 1) {
+          // 墨の濃淡・質感アップ
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="500" fill="#f7f4ef"/>
+            <path d="M120 160 Q250 120 380 180 T320 350 Q210 380 140 310" stroke="#09090b" stroke-width="34" stroke-linecap="round" fill="none" opacity="0.9"/>
+            <path d="M150 220 Q270 200 350 240" stroke="#3f3f46" stroke-width="12" stroke-dasharray="18 8" stroke-linecap="round" fill="none"/>
+            <rect x="360" y="370" width="28" height="28" rx="2" fill="#b91c1c"/>
+          `;
+        } else if (variant === 2) {
+          // 落款印と和紙の繊維アップ
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="500" fill="#f3efe6"/>
+            <path d="M100 100 L400 400 M380 120 L120 380" stroke="#d6cfc2" stroke-width="2" opacity="0.5"/>
+            <path d="M190 140 C200 220, 180 300, 210 370" stroke="#18181b" stroke-width="22" stroke-linecap="round" fill="none"/>
+            <rect x="275" y="275" width="64" height="64" rx="4" fill="#dc2626"/>
+            <text x="307" y="316" font-size="28" fill="#fff" text-anchor="middle" font-family="serif" font-weight="bold">静寂</text>
+          `;
+        } else {
+          // 和室・モダンリビング展示イメージ
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="360" fill="#e2ddd5"/>
+            <rect x="0" y="360" width="500" height="140" fill="#9a8468"/>
+            <rect x="175" y="45" width="150" height="240" fill="#27272a" rx="2"/>
+            <rect x="187" y="57" width="126" height="216" fill="#faf8f5"/>
+            <path d="M250 95 C245 140, 260 185, 242 235 M220 145 L280 140" stroke="#18181b" stroke-width="10" stroke-linecap="round" fill="none"/>
+            <rect x="130" y="330" width="240" height="30" fill="#574734"/>
+          `;
+        }
+      } else if (type === '絵画') {
+        if (variant === 0) {
+          // 全体図（抽象風景アクリル画）
+          innerSvg = `
+            <defs>
+              <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0f172a"/>
+                <stop offset="55%" stop-color="#1d4ed8"/>
+                <stop offset="100%" stop-color="#38bdf8"/>
+              </linearGradient>
+            </defs>
+            <rect x="55" y="55" width="390" height="390" fill="url(#skyGrad)" rx="4"/>
+            <circle cx="330" cy="155" r="46" fill="#fef08a" opacity="0.9"/>
+            <path d="M55 310 Q180 250 290 315 T445 290 L445 445 L55 445 Z" fill="#1e293b"/>
+            <path d="M55 355 Q210 320 340 370 T445 350 L445 445 L55 445 Z" fill="#0284c7" opacity="0.75"/>
+          `;
+        } else if (variant === 1) {
+          // 絵具の盛り上がり・筆致クローズアップ
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="500" fill="#1e3a8a"/>
+            <path d="M-20 120 Q150 60 320 140 T520 100" stroke="#38bdf8" stroke-width="48" fill="none" stroke-linecap="round"/>
+            <path d="M-20 240 Q180 190 340 260 T520 220" stroke="#facc15" stroke-width="32" fill="none" stroke-linecap="round"/>
+            <path d="M-20 360 Q140 310 310 380 T520 340" stroke="#f8fafc" stroke-width="26" fill="none" stroke-linecap="round" opacity="0.85"/>
+          `;
+        } else if (variant === 2) {
+          // 木製フローティング額縁の側面ディテール
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="500" fill="#f1f5f9"/>
+            <polygon points="140,60 220,30 220,470 140,440" fill="#b45309"/>
+            <polygon points="220,30 370,70 370,430 220,470" fill="#1d4ed8"/>
+            <circle cx="300" cy="180" r="32" fill="#fde047"/>
+          `;
+        } else {
+          // 白壁インテリア設置イメージ
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="380" fill="#f8fafc"/>
+            <rect x="0" y="380" width="500" height="120" fill="#cbd5e1"/>
+            <rect x="145" y="70" width="210" height="210" fill="#78350f" rx="3"/>
+            <rect x="157" y="82" width="186" height="186" fill="#1e40af"/>
+            <circle cx="285" cy="135" r="24" fill="#fef08a"/>
+            <path d="M157 210 Q230 180 343 220 L343 268 L157 268 Z" fill="#0f172a"/>
+          `;
+        }
+      } else {
+        // 3Dアート・立体造形
+        if (variant === 0) {
+          // 正面アングル（流線形木彫・ブロンズオブジェ）
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="500" fill="#18181b"/>
+            <ellipse cx="250" cy="425" rx="115" ry="22" fill="#27272a"/>
+            <path d="M250 85 C335 120, 345 230, 265 280 C190 325, 200 390, 275 415 C180 410, 155 315, 225 255 C285 205, 265 130, 250 85 Z" fill="#d97706"/>
+            <path d="M250 85 C295 135, 290 215, 235 265" stroke="#fef3c7" stroke-width="6" fill="none" opacity="0.6"/>
+          `;
+        } else if (variant === 1) {
+          // 側面アングル（45度回転）
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="500" fill="#1f1f23"/>
+            <ellipse cx="250" cy="425" rx="115" ry="22" fill="#27272a"/>
+            <path d="M210 95 C315 110, 360 220, 285 310 C235 365, 265 400, 295 415 C205 415, 175 345, 235 275 C290 210, 255 135, 210 95 Z" fill="#b45309"/>
+            <circle cx="268" cy="215" r="24" fill="#1f1f23"/>
+          `;
+        } else if (variant === 2) {
+          // 背面・木目テクスチャアップ
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="500" fill="#27272a"/>
+            <rect x="110" y="60" width="280" height="380" rx="140" fill="#92400e"/>
+            <path d="M180 90 Q240 250 185 410 M240 80 Q300 250 245 420 M295 100 Q340 250 295 400" stroke="#451a03" stroke-width="8" fill="none" opacity="0.5"/>
+          `;
+        } else {
+          // ギャラリー台座展示イメージ
+          innerSvg = `
+            <rect x="0" y="0" width="500" height="500" fill="#e4e4e7"/>
+            <rect x="165" y="295" width="170" height="205" fill="#ffffff" stroke="#d4d4d8" stroke-width="2"/>
+            <path d="M250 115 C300 140, 305 205, 258 235 C215 260, 220 285, 262 295 C208 292, 195 245, 235 215 C270 188, 258 142, 250 115 Z" fill="#d97706"/>
+          `;
+        }
+      }
+
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+        <rect width="500" height="500" fill="${bgHex}"/>
+        ${innerSvg}
+      </svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    function createAvatarUri(bgColor, charText) {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+        <rect width="100" height="100" rx="50" fill="${bgColor}"/>
+        <text x="50" y="63" font-size="42" fill="#ffffff" text-anchor="middle" font-family="serif" font-weight="bold">${charText}</text>
+      </svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    // =========================================================================
+    // 2. 初期ダミーデータ（書道・絵画・3次元アート 各4枚構成）
+    // =========================================================================
+    let posts = [
+      {
+        id: 'post-1',
+        author: '神楽坂 墨翠',
+        handle: '@bokusui_sho',
+        avatar: createAvatarUri('#18181b', '翠'),
+        timeAgo: '2時間前',
+        category: '書道',
+        title: '『静寂の墨跡』特選越前和紙・表装掛け軸',
+        description: '早朝の澄んだ空気の中で一気に書き上げた一作です。滲み（にじみ）とかすれのコントラストを4枚の写真でご覧ください。専用桐箱に入れて自動取次配送でお届けします。',
+        price: 30000,
+        status: 'ON_SALE', // ON_SALE | IN_TRADE
+        liked: false,
+        likes: 418,
+        reposts: 62,
+        followed: false,
+        images: [
+          { url: createArtDataUri('書道', 0, '#f4f1ea', '#18181b'), label: '正面全体（掛け軸表装）' },
+          { url: createArtDataUri('書道', 1, '#f7f4ef', '#09090b'), label: '筆致・墨の濃淡アップ' },
+          { url: createArtDataUri('書道', 2, '#f3efe6', '#dc2626'), label: '落款印・和紙繊維ディテール' },
+          { url: createArtDataUri('書道', 3, '#e2ddd5', '#574734'), label: '室内展示イメージ（床の間・壁掛け）' }
+        ],
+        comments: [
+          { user: '美濃部', text: 'かすれの勢いが素晴らしいですね！玄関に飾りたくなります。' },
+          { user: 'Sora_Art', text: '越前和紙の質感がアップ写真からよく伝わります。' }
+        ]
+      },
+      {
+        id: 'post-2',
+        author: '蒼井 遥香',
+        handle: '@haruka_atelier',
+        avatar: createAvatarUri('#1d4ed8', '蒼'),
+        timeAgo: '5時間前',
+        category: '絵画',
+        title: '『蒼い夜明け』アクリル・ミクストメディア（F6号）',
+        description: '夜が明ける直前の深い群青と、水面に差し込む最初の光を厚塗りのマチエールで表現しました。木製フローティング額縁付きですぐに飾れます。',
+        price: 48000,
+        status: 'ON_SALE',
+        liked: true,
+        likes: 892,
+        reposts: 134,
+        followed: true,
+        images: [
+          { url: createArtDataUri('絵画', 0, '#0f172a', '#38bdf8'), label: '作品正面全体（F6キャンバス）' },
+          { url: createArtDataUri('絵画', 1, '#1e3a8a', '#facc15'), label: '絵具の盛り上がり・質感アップ' },
+          { url: createArtDataUri('絵画', 2, '#f1f5f9', '#b45309'), label: '木製フローティング額縁・側面' },
+          { url: createArtDataUri('絵画', 3, '#f8fafc', '#1e40af'), label: 'リビング白壁への設置イメージ' }
+        ],
+        comments: [
+          { user: 'Kento', text: '2枚目のマチエールの立体感がたまりません！' }
+        ]
+      },
+      {
+        id: 'post-3',
+        author: '工房 刻（KOKU）',
+        handle: '@koku_sculpture',
+        avatar: createAvatarUri('#b45309', '刻'),
+        timeAgo: '1日前',
+        category: '3Dアート',
+        title: '『流転する木彫オブジェ』欅（ケヤキ）一木造り',
+        description: '樹齢80年の国産ケヤキから削り出した有機的な3次元彫刻です。光の当たり方や見る角度によって全く異なる表情を見せます。正面・側面・背面・台座展示の4アングルを掲載。',
+        price: 65000,
+        status: 'ON_SALE',
+        liked: false,
+        likes: 1240,
+        reposts: 215,
+        followed: false,
+        images: [
+          { url: createArtDataUri('3Dアート', 0, '#18181b', '#d97706'), label: '正面アングル（高さ34cm）' },
+          { url: createArtDataUri('3Dアート', 1, '#1f1f23', '#b45309'), label: '右側面45度アングル' },
+          { url: createArtDataUri('3Dアート', 2, '#27272a', '#92400e'), label: '背面・天然木目テクスチャ' },
+          { url: createArtDataUri('3Dアート', 3, '#e4e4e7', '#d97706'), label: 'ギャラリー台座への設置例' }
+        ],
+        comments: [
+          { user: '建築設計_田中', text: '曲線美が見事です。クライアントのラウンジ用に検討中！' }
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // 3. アプリ状態管理
+    // =========================================================================
+    let currentCategoryFilter = 'ALL';
+    let activePostId = null;
+    let activeImageIndex = 0;
+    let activeTrades = []; // 自動取次で生成された取引ルーム一覧
+    let currentTradeRoomId = null;
+
+    // 初期化
+    window.addEventListener('DOMContentLoaded', () => {
+      renderFeed();
+      updatePresetPreview();
+      recalculateNewPostFee();
+      lucide.createIcons();
+    });
+
+    // =========================================================================
+    // 4. タイムライン描画＆横スクロールカルーセル（IMG_3866.png 再現）
+    // =========================================================================
+    function setCategoryFilter(cat) {
+      currentCategoryFilter = cat;
+      document.querySelectorAll('.cat-tab').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.classList.add('border-slate-900', 'text-slate-900');
+          btn.classList.remove('border-transparent', 'text-slate-500');
+        } else {
+          btn.classList.remove('border-slate-900', 'text-slate-900');
+          btn.classList.add('border-transparent', 'text-slate-500');
+        }
+      });
+      renderFeed();
+    }
+
+    function renderFeed() {
+      const container = document.getElementById('feed-container');
+      const filtered = currentCategoryFilter === 'ALL'
+        ? posts
+        : posts.filter(p => p.category === currentCategoryFilter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="py-20 text-center text-slate-400 text-sm">
+            該当するカテゴリの作品はまだ投稿されていません
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(post => {
+        const fee = Math.floor(post.price * 0.05);
+        const isSold = post.status !== 'ON_SALE';
+
+        // 横スクロール写真ギャラリー（IMG_3866.pngのように複数画像が横に並ぶ）
+        const horizontalPhotosHtml = post.images.map((img, idx) => `
+          <div
+            onclick="openGalleryModal('${post.id}', ${idx})"
+            class="snap-start shrink-0 w-[72%] sm:w-[64%] aspect-square rounded-2xl overflow-hidden border border-slate-200/90 bg-slate-100 relative cursor-pointer group">
+            <img src="${img.url}" alt="${post.title} - ${img.label}" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+            <span class="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-white text-[10px] font-medium">
+              ${idx + 1}/${post.images.length} ${img.label}
+            </span>
+          </div>
+        `).join('');
+
+        return `
+          <article class="px-4 py-4 hover:bg-slate-50/40 transition">
+            <!-- 作家ヘッダー行 -->
+            <div class="flex items-start gap-3">
+              <img src="${post.avatar}" alt="${post.author}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0 mt-0.5" />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="font-bold text-sm text-slate-900 truncate">${post.author}</span>
+                    <i data-lucide="badge-check" class="w-4 h-4 text-sky-500 shrink-0"></i>
+                    <span class="text-xs text-slate-400 truncate">${post.handle} · ${post.timeAgo}</span>
+                  </div>
+                  <span class="shrink-0 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold">
+                    ${post.category}
+                  </span>
+                </div>
+
+                <!-- 作品タイトル＆コメント -->
+                <h2 onclick="openGalleryModal('${post.id}', 0)" class="font-bold text-[15px] text-slate-900 mt-1 cursor-pointer hover:text-rose-600 transition">
+                  ${post.title}
+                </h2>
+                <p class="text-sm text-slate-700 mt-1 leading-relaxed">
+                  ${post.description}
+                </p>
+
+                <!-- 横スクロール写真カルーセル（IMG_3866.png スタイル） -->
+                <div class="mt-3 -mx-4 px-4 flex gap-2.5 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+                  ${horizontalPhotosHtml}
+                </div>
+
+                <!-- 販売価格＆自動取次購入バー -->
+                <div class="mt-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3">
+                  <div>
+                    <div class="flex items-baseline gap-1.5">
+                      <span class="text-lg font-extrabold text-slate-900">¥${post.price.toLocaleString()}</span>
+                      <span class="text-[11px] text-slate-500">税込・自動取次</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">
+                      仲介手数料5%（¥${fee.toLocaleString()}）含むエスクロー保護取引
+                    </p>
+                  </div>
+
+                  ${isSold ? `
+                    <button onclick="openTradeByPostId('${post.id}')" class="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5">
+                      <i data-lucide="message-square" class="w-3.5 h-3.5 text-emerald-400"></i>
+                      <span>取引ルームへ</span>
+                    </button>
+                  ` : `
+                    <div class="flex items-center gap-2">
+                      <button onclick="openGalleryModal('${post.id}', 0)" class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition">
+                        詳細
+                      </button>
+                      <button onclick="directCheckout('${post.id}')" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold shadow-sm shadow-rose-600/20 transition">
+                        購入する
+                      </button>
+                    </div>
+                  `}
+                </div>
+
+                <!-- SNSアクションバー（いいね・コメント・共有） -->
+                <div class="mt-3 flex items-center justify-between text-slate-500 pr-2">
+                  <button onclick="openGalleryModal('${post.id}', 0)" class="flex items-center gap-1.5 hover:text-sky-600 transition text-xs">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                    <span>${post.comments.length}</span>
+                  </button>
+                  <button onclick="showToast('作品をリポストしました')" class="flex items-center gap-1.5 hover:text-emerald-600 transition text-xs">
+                    <i data-lucide="repeat-2" class="w-4 h-4"></i>
+                    <span>${post.reposts}</span>
+                  </button>
+                  <button onclick="toggleLikeFeed('${post.id}')" class="flex items-center gap-1.5 ${post.liked ? 'text-rose-600 font-bold' : 'hover:text-rose-600'} transition text-xs">
+                    <i data-lucide="heart" class="w-4 h-4 ${post.liked ? 'fill-rose-600' : ''}"></i>
+                    <span>${post.likes}</span>
+                  </button>
+                  <button onclick="openGalleryModal('${post.id}', 0)" class="flex items-center gap-1 hover:text-slate-900 transition text-xs font-medium">
+                    <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+                    <span>全${post.images.length}枚を見る</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function toggleLikeFeed(postId) {
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+      post.liked = !post.liked;
+      post.likes += post.liked ? 1 : -1;
+      renderFeed();
+    }
+
+    // =========================================================================
+    // 5. ダークギャラリー詳細＆下部サムネイル一覧（IMG_3867.png 完全再現）
+    // =========================================================================
+    function openGalleryModal(postId, initialIndex = 0) {
+      activePostId = postId;
+      activeImageIndex = initialIndex;
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      document.getElementById('gal-category-badge').textContent = post.category;
+      const statusBadge = document.getElementById('gal-status-badge');
+      if (post.status === 'ON_SALE') {
+        statusBadge.textContent = '販売中';
+        statusBadge.className = 'px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold';
+      } else {
+        statusBadge.textContent = '自動取次・取引中';
+        statusBadge.className = 'px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold';
+      }
+
+      document.getElementById('gal-avatar').src = post.avatar;
+      document.getElementById('gal-author').textContent = post.author;
+      document.getElementById('gal-handle').textContent = post.handle;
+      document.getElementById('gal-title').textContent = post.title;
+      document.getElementById('gal-description').textContent = post.description;
+      document.getElementById('gal-comment-count').textContent = post.comments.length;
+      document.getElementById('gal-repost-count').textContent = post.reposts;
+      document.getElementById('gal-like-count').textContent = post.likes;
+      document.getElementById('gal-price-label').textContent = `¥${post.price.toLocaleString()}`;
+
+      // フォローボタン状態
+      const followBtn = document.getElementById('gal-follow-btn');
+      followBtn.textContent = post.followed ? 'フォロー中' : 'フォローする';
+      followBtn.className = post.followed
+        ? 'px-4 py-1.5 rounded-full bg-zinc-800 text-white border border-zinc-700 font-bold text-xs transition'
+        : 'px-4 py-1.5 rounded-full bg-white text-black font-bold text-xs hover:bg-zinc-200 transition';
+
+      // いいねボタン色
+      const likeBtn = document.getElementById('gal-like-btn');
+      likeBtn.className = `flex items-center gap-1.5 transition text-xs ${post.liked ? 'text-rose-500 font-bold' : 'hover:text-rose-500'}`;
+
+      // 購入ボタン状態
+      const buyBtn = document.getElementById('gal-buy-btn');
+      if (post.status !== 'ON_SALE') {
+        buyBtn.innerHTML = `<span class="flex items-center gap-2"><i data-lucide="package-check" class="w-4 h-4"></i><span>この作品の専用取引ルームを開く</span></span><span class="text-xs bg-black/30 px-2 py-0.5 rounded">取引中</span>`;
+        buyBtn.onclick = () => {
+          closeGalleryModal();
+          openTradeByPostId(post.id);
+        };
+      } else {
+        buyBtn.innerHTML = `<span class="flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4"></i><span>購入手続きへ進む（自動取次）</span></span><span class="text-base font-extrabold tracking-tight">¥${post.price.toLocaleString()}</span>`;
+        buyBtn.onclick = () => openCheckoutModal();
+      }
+
+      renderGalleryComments(post);
+      updateGalleryImageView();
+
+      const modal = document.getElementById('gallery-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+      lucide.createIcons();
+    }
+
+    function updateGalleryImageView() {
+      const post = posts.find(p => p.id === activePostId);
+      if (!post) return;
+      const currentImg = post.images[activeImageIndex];
+
+      document.getElementById('gal-main-image').src = currentImg.url;
+      document.getElementById('gal-image-label').textContent = currentImg.label;
+      document.getElementById('gal-image-counter').textContent = `${activeImageIndex + 1} / ${post.images.length}`;
+
+      // ★下部サムネイル一覧の描画（IMG_3867.pngの核心UI）
+      const thumbStrip = document.getElementById('gal-thumbnails');
+      thumbStrip.innerHTML = post.images.map((img, idx) => {
+        const isSelected = idx === activeImageIndex;
+        return `
+          <button
+            onclick="selectGalleryThumbnail(${idx})"
+            class="shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-150 ${
+              isSelected
+                ? 'border-white scale-105 shadow-lg shadow-white/20 opacity-100'
+                : 'border-transparent opacity-55 hover:opacity-90'
+            }">
+            <img src="${img.url}" alt="${img.label}" class="w-full h-full object-cover" />
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectGalleryThumbnail(idx) {
+      activeImageIndex = idx;
+      updateGalleryImageView();
+    }
+
+    function closeGalleryModal() {
+      const modal = document.getElementById('gallery-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    // タッチスワイプでメイン画像切り替え対応
+    let touchStartX = 0;
+    const galWrapper = document.getElementById('gal-main-image-wrapper');
+    galWrapper.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    galWrapper.addEventListener('touchend', e => {
+      const diff = e.changedTouches[0].screenX - touchStartX;
+      const post = posts.find(p => p.id === activePostId);
+      if (!post || Math.abs(diff) < 40) return;
+      if (diff < 0 && activeImageIndex < post.images.length - 1) {
+        activeImageIndex++;
+        updateGalleryImageView();
+      } else if (diff > 0 && activeImageIndex > 0) {
+        activeImageIndex--;
+        updateGalleryImageView();
+      }
+    }, { passive: true });
+
+    function toggleFollowInGallery() {
+      const post = posts.find(p => p.id === activePostId);
+      if (!post) return;
+      post.followed = !post.followed;
+      const btn = document.getElementById('gal-follow-btn');
+      btn.textContent = post.followed ? 'フォロー中' : 'フォローする';
+      btn.className = post.followed
+        ? 'px-4 py-1.5 rounded-full bg-zinc-800 text-white border border-zinc-700 font-bold text-xs transition'
+        : 'px-4 py-1.5 rounded-full bg-white text-black font-bold text-xs hover:bg-zinc-200 transition';
+      showToast(post.followed ? `${post.author}さんをフォローしました` : 'フォローを解除しました');
+    }
+
+    function toggleLikeCurrentPost() {
+      const post = posts.find(p => p.id === activePostId);
+      if (!post) return;
+      post.liked = !post.liked;
+      post.likes += post.liked ? 1 : -1;
+      document.getElementById('gal-like-count').textContent = post.likes;
+      const likeBtn = document.getElementById('gal-like-btn');
+      likeBtn.className = `flex items-center gap-1.5 transition text-xs ${post.liked ? 'text-rose-500 font-bold' : 'hover:text-rose-500'}`;
+      renderFeed();
+    }
+
+    function renderGalleryComments(post) {
+      const list = document.getElementById('gal-comments-list');
+      list.innerHTML = post.comments.map(c => `
+        <div class="bg-zinc-900/80 px-3 py-1.5 rounded-lg">
+          <span class="font-bold text-zinc-200 mr-1.5">${c.user}:</span>
+          <span class="text-zinc-400">${c.text}</span>
+        </div>
+      `).join('');
+    }
+
+    function focusCommentInput() {
+      document.getElementById('gal-comment-input').focus();
+    }
+
+    function submitGalleryComment() {
+      const input = document.getElementById('gal-comment-input');
+      const text = input.value.trim();
+      if (!text) return;
+      const post = posts.find(p => p.id === activePostId);
+      if (!post) return;
+      post.comments.push({ user: 'あなた', text });
+      input.value = '';
+      document.getElementById('gal-comment-count').textContent = post.comments.length;
+      renderGalleryComments(post);
+      renderFeed();
+      showToast('コメントを投稿しました');
+    }
+
+    // =========================================================================
+    // 6. メルカリ風 購入手続き＆5%手数料計算モーダル
+    // =========================================================================
+    function directCheckout(postId) {
+      activePostId = postId;
+      openCheckoutModal();
+    }
+
+    function openCheckoutModal() {
+      const post = posts.find(p => p.id === activePostId);
+      if (!post) return;
+
+      const fee = Math.floor(post.price * 0.05);
+      const payout = post.price - fee;
+
+      document.getElementById('chk-thumb').src = post.images[0].url;
+      document.getElementById('chk-cat').textContent = post.category;
+      document.getElementById('chk-title').textContent = post.title;
+      document.getElementById('chk-author').textContent = `出品者: ${post.author}（${post.handle}）`;
+
+      document.getElementById('chk-price').textContent = `¥${post.price.toLocaleString()}`;
+      document.getElementById('chk-fee').textContent = `¥${fee.toLocaleString()}`;
+      document.getElementById('chk-payout').textContent = `¥${payout.toLocaleString()}`;
+
+      const modal = document.getElementById('checkout-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeCheckoutModal() {
+      const modal = document.getElementById('checkout-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function confirmPurchaseAndCreateRoom() {
+      const post = posts.find(p => p.id === activePostId);
+      if (!post) return;
+
+      const selectedPayment = document.querySelector('input[name="payment_method"]:checked')?.value || 'コンビニ払い';
+      const fee = Math.floor(post.price * 0.05);
+      const payout = post.price - fee;
+
+      // 作品ステータスを取引中に更新
+      post.status = 'IN_TRADE';
+
+      // 自動取次取引ルームオブジェクト生成
+      const tradeId = 'AB-' + Math.floor(100000 + Math.random() * 900000);
+      const newTrade = {
+        tradeId,
+        postId: post.id,
+        title: post.title,
+        author: post.author,
+        thumb: post.images[0].url,
+        price: post.price,
+        fee,
+        payout,
+        paymentMethod: selectedPayment,
+        step: 2, // 1:購入 2:仮払い完了・発送待ち 3:発送済み・受取評価待ち 4:取引完了・自動送金済み
+        messages: [
+          {
+            sender: 'SYSTEM',
+            time: 'たった今',
+            text: `【自動取次システム】購入手続きおよび仮払い（¥${post.price.toLocaleString()} / ${selectedPayment}）が完了しました。代金は取引完了まで事務局が安全にお預かりします。`
+          },
+          {
+            sender: 'SYSTEM',
+            time: 'たった今',
+            text: `出品者（${post.author}様）へ匿名配送用の自動発送コードを通知しました。作品の梱包・発送をお待ちください。`
+          }
+        ]
+      };
+
+      activeTrades.unshift(newTrade);
+      updateTradeBadge();
+      renderFeed();
+
+      closeCheckoutModal();
+      closeGalleryModal();
+      openTradeRoomModal(tradeId);
+      showToast('専用取引ルームを自動生成しました！');
+    }
+
+    // =========================================================================
+    // 7. 専用取引ルーム（自動取次チャット＆ステータス進行シミュレーション）
+    // =========================================================================
+    function updateTradeBadge() {
+      const badge = document.getElementById('active-trade-badge');
+      if (activeTrades.length > 0) {
+        badge.textContent = activeTrades.length;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function openActiveTradesModal() {
+      if (activeTrades.length === 0) {
+        showToast('現在進行中の取引はありません。気になる作品を購入してみましょう！');
+        return;
+      }
+      openTradeRoomModal(activeTrades[0].tradeId);
+    }
+
+    function openTradeByPostId(postId) {
+      const trade = activeTrades.find(t => t.postId === postId);
+      if (trade) {
+        openTradeRoomModal(trade.tradeId);
+      }
+    }
+
+    function openTradeRoomModal(tradeId) {
+      currentTradeRoomId = tradeId;
+      const trade = activeTrades.find(t => t.tradeId === tradeId);
+      if (!trade) return;
+
+      document.getElementById('room-trade-id').textContent = `取引ID: #${trade.tradeId}`;
+      document.getElementById('room-thumb').src = trade.thumb;
+      document.getElementById('room-title').textContent = trade.title;
+      document.getElementById('room-breakdown').textContent =
+        `総額 ¥${trade.price.toLocaleString()}（手数料5%: ¥${trade.fee.toLocaleString()} / 作家受取: ¥${trade.payout.toLocaleString()}）`;
+
+      updateTradeRoomUI(trade);
+
+      const modal = document.getElementById('trade-room-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeTradeRoomModal() {
+      const modal = document.getElementById('trade-room-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function updateTradeRoomUI(trade) {
+      const s2 = document.getElementById('step-2-ind');
+      const s3 = document.getElementById('step-3-ind');
+      const s4 = document.getElementById('step-4-ind');
+      const l23 = document.getElementById('line-2-3');
+      const l34 = document.getElementById('line-3-4');
+
+      const titleEl = document.getElementById('room-status-title');
+      const descEl = document.getElementById('room-status-desc');
+      const btnEl = document.getElementById('room-next-step-btn');
+
+      if (trade.step === 2) {
+        s2.className = 'flex flex-col items-center text-rose-600';
+        s2.innerHTML = '<div class="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center mb-1">2</div><span>発送待ち</span>';
+        s3.className = 'flex flex-col items-center text-slate-400';
+        s3.innerHTML = '<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-1">3</div><span>受取評価</span>';
+        s4.className = 'flex flex-col items-center text-slate-400';
+        s4.innerHTML = '<div class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mb-1">4</div><span>送金完了</span>';
+        l23.className = 'flex-1 h-0.5 bg-slate-200 mx-1';
+        l34.className = 'flex-1 h-0.5 bg-slate-200 mx-1';
+
+        titleEl.textContent = '出品者の発送手続きを待っています';
+        descEl.textContent = 'デモ操作：出品者が作品を発送した状態をシミュレートします';
+        btnEl.textContent = '発送通知を送る（出品者操作）';
+        btnEl.classList.remove('hidden');
+      } else if (trade.step === 3) {
+        s2.className = 'flex flex-col items-center text-emerald-600';
+        s2.innerHTML = '<div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mb-1">✓</div><span>発送完了</span>';
+        s3.className = 'flex flex-col items-center text-rose-600';
+        s3.innerHTML = '<div class="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center mb-1">3</div><span>受取評価</span>';
+        l23.className = 'flex-1 h-0.5 bg-emerald-500 mx-1';
+
+        titleEl.textContent = '作品が発送されました！到着後に受取評価をしてください';
+        descEl.textContent = '受取評価を行うと、出品者へ自動的に95%の売上が送金されます';
+        btnEl.textContent = '作品を受け取り・評価する';
+        btnEl.classList.remove('hidden');
+      } else if (trade.step === 4) {
+        s3.className = 'flex flex-col items-center text-emerald-600';
+        s3.innerHTML = '<div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mb-1">✓</div><span>受取評価済</span>';
+        s4.className = 'flex flex-col items-center text-emerald-600';
+        s4.innerHTML = '<div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center mb-1">✓</div><span>送金完了</span>';
+        l34.className = 'flex-1 h-0.5 bg-emerald-500 mx-1';
+
+        titleEl.textContent = '🎉 取引完了！自動取次精算が正常に終了しました';
+        descEl.textContent = `出品者へ ¥${trade.payout.toLocaleString()} 送金・手数料5%（¥${trade.fee.toLocaleString()}）計上済`;
+        btnEl.classList.add('hidden');
+      }
+
+      // チャットログ描画
+      const chatContainer = document.getElementById('room-chat-messages');
+      chatContainer.innerHTML = trade.messages.map(m => {
+        if (m.sender === 'SYSTEM') {
+          return `
+            <div class="bg-slate-200/70 border border-slate-300/60 rounded-2xl px-3.5 py-2.5 text-xs text-slate-700 leading-relaxed">
+              <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-0.5">
+                <span>ArtBridge 自動取次ボット</span>
+                <span>${m.time}</span>
+              </div>
+              <p>${m.text}</p>
+            </div>
+          `;
+        } else if (m.sender === 'SELLER') {
+          return `
+            <div class="flex flex-col items-start">
+              <span class="text-[10px] text-slate-500 mb-0.5 ml-1">${trade.author}（出品者）</span>
+              <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm px-3.5 py-2 text-xs text-slate-800 max-w-[82%] shadow-sm">
+                ${m.text}
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="flex flex-col items-end">
+              <span class="text-[10px] text-slate-400 mb-0.5 mr-1">あなた（購入者）</span>
+              <div class="bg-slate-900 text-white rounded-2xl rounded-tr-sm px-3.5 py-2 text-xs max-w-[82%] shadow-sm">
+                ${m.text}
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function advanceTradeStep() {
+      const trade = activeTrades.find(t => t.tradeId === currentTradeRoomId);
+      if (!trade) return;
+
+      if (trade.step === 2) {
+        trade.step = 3;
+        trade.messages.push({
+          sender: 'SELLER',
+          time: 'たった今',
+          text: 'ご購入ありがとうございます！厳重に美術品専用緩衝材で梱包し、先ほど発送手続きを完了いたしました。到着まで今しばらくお待ちください。'
+        });
+        trade.messages.push({
+          sender: 'SYSTEM',
+          time: 'たった今',
+          text: '【自動発送通知】配送業者への引き渡しが確認されました（追跡番号: 4920-8812-0041）。作品到着後、「作品を受け取り・評価する」を押してください。'
+        });
+        showToast('発送通知を受信しました');
+      } else if (trade.step === 3) {
+        trade.step = 4;
+        trade.messages.push({
+          sender: 'BUYER',
+          time: 'たった今',
+          text: '作品が無事に届きました！実物の迫力と美しい梱包に感動しました。大切に使わせていただきます。'
+        });
+        trade.messages.push({
+          sender: 'SYSTEM',
+          time: 'たった今',
+          text: `【自動精算完了】双方の評価が完了したため、エスクロー預かり金を自動精算しました。出品者へ ¥${trade.payout.toLocaleString()} を振込予約し、プラットフォーム手数料5%（¥${trade.fee.toLocaleString()}）を確定しました。`
+        });
+        showToast('受取評価が完了し、自動送金処理が行われました！');
+      }
+
+      updateTradeRoomUI(trade);
+    }
+
+    function sendRoomMessage() {
+      const input = document.getElementById('room-chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      const trade = activeTrades.find(t => t.tradeId === currentTradeRoomId);
+      if (!trade) return;
+
+      trade.messages.push({ sender: 'BUYER', time: 'たった今', text });
+      input.value = '';
+      updateTradeRoomUI(trade);
+    }
+
+    // =========================================================================
+    // 8. 新規作品出品（SNS投稿）モーダル＆リアルタイム5%計算
+    // =========================================================================
+    function openCreatePostModal() {
+      updatePresetPreview();
+      recalculateNewPostFee();
+      const modal = document.getElementById('create-post-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeCreatePostModal() {
+      const modal = document.getElementById('create-post-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function getSelectedNewCategory() {
+      return document.querySelector('input[name="new_category"]:checked')?.value || '書道';
+    }
+
+    function updatePresetPreview() {
+      const cat = getSelectedNewCategory();
+      const labels = cat === '書道'
+        ? ['正面全体', '筆致アップ', '落款印', '展示イメージ']
+        : cat === '絵画'
+          ? ['正面全体', '絵具の質感', '額縁側面', '壁掛けイメージ']
+          : ['正面アングル', '側面45度', '背面テクスチャ', '台座展示例'];
+
+      const bgColors = cat === '書道'
+        ? ['#f4f1ea', '#f7f4ef', '#f3efe6', '#e2ddd5']
+        : cat === '絵画'
+          ? ['#0f172a', '#1e3a8a', '#f1f5f9', '#f8fafc']
+          : ['#18181b', '#1f1f23', '#27272a', '#e4e4e7'];
+
+      const strip = document.getElementById('new-photo-preview-strip');
+      strip.innerHTML = [0, 1, 2, 3].map(idx => {
+        const uri = createArtDataUri(cat, idx, bgColors[idx], '#18181b');
+        return `
+          <div class="shrink-0 w-20 flex flex-col items-center gap-1">
+            <img src="${uri}" class="w-20 h-20 rounded-xl object-cover border border-slate-200 bg-white" />
+            <span class="text-[10px] text-slate-500 truncate w-full text-center">${labels[idx]}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function recalculateNewPostFee() {
+      const raw = parseInt(document.getElementById('new-price').value, 10) || 0;
+      const fee = Math.floor(raw * 0.05);
+      const profit = Math.max(0, raw - fee);
+
+      document.getElementById('new-calc-fee').textContent = `- ¥${fee.toLocaleString()}`;
+      document.getElementById('new-calc-profit').textContent = `¥${profit.toLocaleString()}`;
+    }
+
+    function submitNewArtworkPost() {
+      const cat = getSelectedNewCategory();
+      const titleInput = document.getElementById('new-title');
+      const descInput = document.getElementById('new-desc');
+      const priceInput = document.getElementById('new-price');
+
+      const title = titleInput.value.trim() || `『新作${cat}作品』一点ものオリジナル`;
+      const description = descInput.value.trim() || 'アトリエで制作したばかりの新作です。複数角度の写真から質感をご覧ください。購入後は自動取次システムで丁寧に梱包・発送いたします。';
+      const price = Math.max(500, parseInt(priceInput.value, 10) || 20000);
+
+      const labels = cat === '書道'
+        ? ['正面全体', '筆致アップ', '落款印', '展示イメージ']
+        : cat === '絵画'
+          ? ['正面全体', '絵具の質感', '額縁側面', '壁掛けイメージ']
+          : ['正面アングル', '側面45度', '背面テクスチャ', '台座展示例'];
+
+      const bgColors = cat === '書道'
+        ? ['#f4f1ea', '#f7f4ef', '#f3efe6', '#e2ddd5']
+        : cat === '絵画'
+          ? ['#0f172a', '#1e3a8a', '#f1f5f9', '#f8fafc']
+          : ['#18181b', '#1f1f23', '#27272a', '#e4e4e7'];
+
+      const newPost = {
+        id: 'post-' + Date.now(),
+        author: 'あなた（出品作家）',
+        handle: '@my_art_studio',
+        avatar: createAvatarUri('#0284c7', '作'),
+        timeAgo: 'たった今',
+        category: cat,
+        title,
+        description,
+        price,
+        status: 'ON_SALE',
+        liked: false,
+        likes: 1,
+        reposts: 0,
+        followed: false,
+        images: [0, 1, 2, 3].map(idx => ({
+          url: createArtDataUri(cat, idx, bgColors[idx], '#18181b'),
+          label: labels[idx]
+        })),
+        comments: []
+      };
+
+      posts.unshift(newPost);
+      titleInput.value = '';
+      descInput.value = '';
+
+      closeCreatePostModal();
+      setCategoryFilter('ALL');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('タイムラインに作品を出品・投稿しました！');
+    }
+
+    // =========================================================================
+    // 9. トースト通知ユーティリティ
+    // =========================================================================
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toast-banner');
+      el.textContent = msg;
+      el.classList.remove('opacity-0', 'translate-y-1');
+      el.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.add('opacity-0', 'translate-y-1');
+        el.classList.remove('opacity-100', 'translate-y-0');
+      }, 2600);
+    }
+  </script>
+</body>
+</html>
