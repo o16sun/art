@@ -64,23 +64,31 @@
 
     <!-- トップヘッダー（固定） -->
     <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
-      <div class="px-4 h-14 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-bold text-lg shadow-sm">
+      <div class="px-4 h-14 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-serif font-bold text-lg shadow-sm shrink-0">
             墨
           </div>
-          <div>
+          <div class="truncate">
             <h1 class="font-bold text-base tracking-tight text-slate-900 leading-none">ArtBridge</h1>
-            <p class="text-[10px] text-slate-500 font-medium mt-0.5">手数料5%・自動取次アートSNS</p>
+            <p class="text-[10px] text-slate-500 font-medium mt-0.5 truncate">作品鑑賞・自動取次アートSNS</p>
           </div>
         </div>
 
-        <!-- 取引中ルーム一覧ボタン -->
-        <button onclick="openActiveTradesModal()" class="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-semibold transition">
-          <i data-lucide="package-check" class="w-4 h-4 text-rose-600"></i>
-          <span>取引ルーム</span>
-          <span id="active-trade-badge" class="hidden w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] flex items-center justify-center font-bold">1</span>
-        </button>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <!-- 販売者専用メニュー起動ボタン -->
+          <button onclick="openCreatePostModal('create')" class="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm">
+            <i data-lucide="palette" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span>販売者メニュー</span>
+          </button>
+
+          <!-- 取引中ルーム一覧ボタン -->
+          <button onclick="openActiveTradesModal()" class="relative flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-semibold transition">
+            <i data-lucide="package-check" class="w-3.5 h-3.5 text-rose-600"></i>
+            <span class="hidden sm:inline">取引ルーム</span>
+            <span id="active-trade-badge" class="hidden w-4 h-4 rounded-full bg-rose-600 text-white text-[10px] flex items-center justify-center font-bold">1</span>
+          </button>
+        </div>
       </div>
 
       <!-- カテゴリフィルタータブ（IMG_3866.png風のすっきりしたタブUI） -->
@@ -103,14 +111,14 @@
     <!-- タイムライン（フィード）エリア -->
     <main id="feed-container" class="divide-y divide-slate-200/80">
       <!-- JavaScriptで動的に投稿カードを描画 -->
-    </main>
-
-    <!-- 右下フローティング「＋（新規作品出品）」ボタン（IMG_3866.png準拠） -->
+    <!-- 右下フローティング「＋（販売者用・新規出品）」ボタン -->
     <button
-      onclick="openCreatePostModal()"
-      aria-label="新規作品を出品・投稿"
-      class="fixed bottom-6 right-6 sm:right-[calc(50%-16.5rem)] z-30 w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-600 active:scale-95 text-white shadow-lg shadow-sky-500/30 flex items-center justify-center transition-all duration-150">
-      <i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i>
+      onclick="openCreatePostModal('create')"
+      aria-label="販売者用：新規作品を出品"
+      title="販売者用：作品を出品する"
+      class="fixed bottom-6 right-6 sm:right-[calc(50%-16.5rem)] z-30 h-13 px-4 py-3 rounded-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white shadow-xl shadow-slate-900/25 flex items-center gap-1.5 transition-all duration-150 border border-white/10">
+      <i data-lucide="plus" class="w-5 h-5 stroke-[2.5] text-sky-400"></i>
+      <span class="text-xs font-bold pr-0.5">出品する</span>
     </button>
 
   </div>
@@ -184,22 +192,22 @@
         <!-- SNSリアクション行（IMG_3867.png風のアイコン並び） -->
         <div class="flex items-center justify-between pt-1 pb-2 text-zinc-400 border-b border-zinc-800/80">
           <button onclick="focusCommentInput()" class="flex items-center gap-1.5 hover:text-sky-400 transition text-xs">
+        <!-- SNSリアクション行（オリジナルアイコン＆名称でクリーンに構成） -->
+        <div class="flex items-center justify-between pt-1 pb-2 text-zinc-400 border-b border-zinc-800/80">
+          <button onclick="focusCommentInput()" class="flex items-center gap-1.5 hover:text-sky-400 transition text-xs">
             <i data-lucide="message-circle" class="w-4 h-4"></i>
-            <span id="gal-comment-count">12</span>
+            <span>コメント <span id="gal-comment-count">12</span></span>
           </button>
-          <button onclick="showToast('作品をリポストしました')" class="flex items-center gap-1.5 hover:text-emerald-400 transition text-xs">
-            <i data-lucide="repeat-2" class="w-4 h-4"></i>
-            <span id="gal-repost-count">48</span>
+          <button onclick="showToast('作品の共有リンクをコピーしました')" class="flex items-center gap-1.5 hover:text-emerald-400 transition text-xs">
+            <i data-lucide="share-2" class="w-4 h-4"></i>
+            <span>シェア <span id="gal-repost-count">48</span></span>
           </button>
           <button id="gal-like-btn" onclick="toggleLikeCurrentPost()" class="flex items-center gap-1.5 hover:text-rose-500 transition text-xs">
             <i data-lucide="heart" class="w-4 h-4"></i>
-            <span id="gal-like-count">320</span>
+            <span>いいね <span id="gal-like-count">320</span></span>
           </button>
-          <button onclick="showToast('ブックマークに保存しました')" class="flex items-center gap-1.5 hover:text-amber-400 transition text-xs">
+          <button onclick="showToast('お気に入りに保存しました')" class="flex items-center gap-1.5 hover:text-amber-400 transition text-xs">
             <i data-lucide="bookmark" class="w-4 h-4"></i>
-          </button>
-          <button onclick="showToast('共有用URLをコピーしました')" class="flex items-center gap-1.5 hover:text-white transition text-xs">
-            <i data-lucide="share" class="w-4 h-4"></i>
           </button>
         </div>
 
@@ -284,29 +292,22 @@
           </div>
         </div>
 
-        <!-- ★重要要件：5%プラットフォーム手数料・透明化内訳ボックス -->
-        <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-2.5">
+        <!-- 購入者向けお支払い金額ボックス（シンプルな税込・送料込み表示） -->
+        <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <i data-lucide="calculator" class="w-4 h-4 text-slate-500"></i>
-              取引金額・自動取次手数料（5%）内訳
+              <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+              お支払い総額（エスクロー安全取引）
             </span>
-            <span class="text-[11px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-semibold">送料込み</span>
+            <span class="text-[11px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-semibold">全国送料無料</span>
           </div>
-          <div class="border-t border-slate-200 pt-2.5 space-y-2 text-xs">
-            <div class="flex justify-between text-slate-700">
-              <span>作品販売価格（購入者お支払い額）</span>
-              <span id="chk-price" class="font-bold text-sm text-slate-900">¥30,000</span>
-            </div>
-            <div class="flex justify-between text-slate-500">
-              <span>├ プラットフォーム自動取次手数料（5%）</span>
-              <span id="chk-fee" class="font-medium text-rose-600">¥1,500</span>
-            </div>
-            <div class="flex justify-between text-slate-500">
-              <span>└ 出品者（作家）への自動送金予定額（95%）</span>
-              <span id="chk-payout" class="font-medium text-slate-700">¥28,500</span>
-            </div>
+          <div class="border-t border-slate-200 pt-2.5 flex items-baseline justify-between">
+            <span class="text-xs text-slate-600">作品代金（税込）</span>
+            <span id="chk-price" class="font-extrabold text-xl text-slate-900">¥30,000</span>
           </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            ※代金は作品が到着し「受取評価」を行うまで事務局が一時お預かりします。
+          </p>
         </div>
 
         <!-- 支払い方法選択（銀行振込・コンビニ払い＋Stripeカード準備中バッジ） -->
@@ -429,13 +430,13 @@
         </div>
       </div>
 
-      <!-- 作品＆5%手数料精算サマリーバー -->
+      <!-- 作品＆取引サマリーバー -->
       <div class="px-4 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between text-xs">
         <div class="flex items-center gap-2.5 min-w-0">
           <img id="room-thumb" src="" class="w-9 h-9 rounded-lg object-cover border border-slate-200" />
           <div class="truncate">
             <p id="room-title" class="font-bold text-slate-900 truncate">作品名</p>
-            <p id="room-breakdown" class="text-[11px] text-slate-500">総額 ¥30,000（手数料5%: ¥1,500 / 作家受取: ¥28,500）</p>
+            <p id="room-breakdown" class="text-[11px] text-slate-500">お支払い総額 ¥30,000（エスクロー保護中）</p>
           </div>
         </div>
       </div>
@@ -456,19 +457,44 @@
   </div>
 
   <!-- =====================================================================
-       4. 新規作品出品（SNS投稿）モーダル（＋ボタンから起動）
+       4. 販売者専用ポップアップ（新規出品フォーム ＆ 販売者管理ダッシュボード）
   ====================================================================== -->
   <div id="create-post-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-fade-in">
-      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-        <button onclick="closeCreatePostModal()" class="text-sm font-medium text-slate-500 hover:text-slate-800">キャンセル</button>
-        <h3 class="font-bold text-base text-slate-900">作品を出品・ポスト</h3>
-        <button onclick="submitNewArtworkPost()" class="px-4 py-1.5 rounded-full bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold shadow-sm transition">
-          投稿する
+      <!-- 販売者専用ヘッダー -->
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30 text-[10px] font-bold">販売者専用</span>
+          <h3 class="font-bold text-sm">アーティスト出品・管理スタジオ</h3>
+        </div>
+        <button onclick="closeCreatePostModal()" class="p-1.5 rounded-full hover:bg-slate-800 text-slate-300 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <div class="p-5 overflow-y-auto space-y-4 text-sm">
+      <!-- 販売者用サブタブ切り替え（新規出品 / 出品管理＆売上試算） -->
+      <div class="flex border-b border-slate-200 bg-slate-50 text-xs font-bold">
+        <button id="seller-tab-create" onclick="switchSellerTab('create')" class="flex-1 py-3 text-center border-b-2 border-slate-900 text-slate-900 bg-white transition">
+          新規作品を出品する
+        </button>
+        <button id="seller-tab-manage" onclick="switchSellerTab('manage')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition">
+          出品管理・精算シミュレーション
+        </button>
+      </div>
+
+      <!-- タブ1: 新規出品フォーム -->
+      <div id="seller-panel-create" class="p-5 overflow-y-auto space-y-4 text-sm flex-1">
+        <!-- 販売者向け規約案内バナー（ここにのみ5%手数料を明記） -->
+        <div class="p-3 rounded-xl bg-sky-50 border border-sky-200/80 text-xs text-slate-700 leading-relaxed flex items-start gap-2.5">
+          <i data-lucide="info" class="w-4 h-4 text-sky-600 shrink-0 mt-0.5"></i>
+          <div>
+            <p class="font-bold text-slate-900">販売者向け自動取次プログラムについて</p>
+            <p class="text-[11px] text-slate-600 mt-0.5">
+              作品が購入され受取評価が完了すると、販売価格から<strong>システム利用・自動取次手数料（5%）</strong>を差し引いた<strong>95%</strong>が登録口座へ自動送金されます。（タイムライン上の購入者画面には手数料率は表示されません）
+            </p>
+          </div>
+        </div>
+
         <!-- カテゴリ選択 -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1.5">アートカテゴリ</label>
@@ -488,54 +514,86 @@
             <label class="cursor-pointer">
               <input type="radio" name="new_category" value="3Dアート" onchange="updatePresetPreview()" class="peer sr-only" />
               <div class="py-2 text-center rounded-xl border border-slate-200 peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white text-xs font-bold transition">
-                3Dアート
+                3Dアート・立体
               </div>
             </label>
           </div>
         </div>
 
-        <!-- 作品タイトル -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">作品タイトル</label>
-          <input id="new-title" type="text" placeholder="例：『風雅の書』特注和紙・額装済み" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900" />
+        <!-- 作家名・タイトル -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">作家名・アトリエ名</label>
+            <input id="new-author" type="text" value="あなた（出品作家）" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-slate-900" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">作品タイトル</label>
+            <input id="new-title" type="text" placeholder="例：『風雅の書』特注和紙・額装" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-slate-900" />
+          </div>
         </div>
 
         <!-- 作品紹介コメント（SNSキャプション） -->
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">作品コメント・制作背景</label>
-          <textarea id="new-desc" rows="3" placeholder="作品のコンセプトやサイズ、素材、角度ごとの見どころを記載してください..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-slate-900"></textarea>
+          <textarea id="new-desc" rows="2" placeholder="作品のコンセプトやサイズ、素材、角度ごとの見どころを記載してください..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-slate-900"></textarea>
         </div>
 
-        <!-- 複数角度サンプル画像セット選択（画像切れなしの生成アートSVGセット） -->
+        <!-- 複数角度サンプル画像セット選択（ローカル画像アップロード＋サンプル生成対応） -->
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="text-xs font-bold text-slate-700">作品写真セット（複数枚・横スクロール表示）</label>
-            <span class="text-[11px] text-slate-400">4枚セット自動生成</span>
+            <label class="text-xs font-bold text-slate-700">作品写真（複数枚・横スクロール表示）</label>
+            <label class="text-[11px] font-bold text-sky-600 hover:text-sky-700 cursor-pointer flex items-center gap-1">
+              <i data-lucide="image-plus" class="w-3.5 h-3.5"></i>
+              <span>端末から写真を追加</span>
+              <input id="new-photo-upload" type="file" accept="image/*" multiple onchange="handleSellerPhotoUpload(event)" class="hidden" />
+            </label>
           </div>
           <div id="new-photo-preview-strip" class="flex gap-2 overflow-x-auto no-scrollbar p-2 rounded-xl bg-slate-50 border border-slate-200">
-            <!-- JSで選択カテゴリのプレビュー4枚を表示 -->
+            <!-- JSで選択カテゴリのプレビューまたはアップロード写真を表示 -->
           </div>
         </div>
 
-        <!-- 販売価格＆5%手数料リアルタイム自動計算 -->
+        <!-- 販売価格＆販売者専用5%手数料リアルタイム自動計算 -->
         <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">販売希望価格（税込・送料込み）</label>
             <div class="relative">
               <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-500">¥</span>
-              <input id="new-price" type="number" min="500" step="500" value="20000" oninput="recalculateNewPostFee()" class="w-full pl-8 pr-4 py-2.5 rounded-xl border border-slate-300 bg-white font-bold text-base text-slate-900 focus:outline-none focus:border-slate-900" />
+              <input id="new-price" type="number" min="500" step="500" value="30000" oninput="recalculateNewPostFee()" class="w-full pl-8 pr-4 py-2 rounded-xl border border-slate-300 bg-white font-bold text-base text-slate-900 focus:outline-none focus:border-slate-900" />
             </div>
           </div>
 
           <div class="border-t border-slate-200 pt-2.5 space-y-1.5 text-xs">
             <div class="flex justify-between text-slate-500">
-              <span>自動取次プラットフォーム手数料（5%）</span>
-              <span id="new-calc-fee" class="font-semibold text-rose-600">- ¥1,000</span>
+              <span>自動取次・販売手数料（5%）</span>
+              <span id="new-calc-fee" class="font-semibold text-rose-600">- ¥1,500</span>
             </div>
             <div class="flex justify-between items-center text-slate-900 font-bold pt-1">
               <span>あなたの受取利益（95%）</span>
-              <span id="new-calc-profit" class="text-base text-emerald-600">¥19,000</span>
+              <span id="new-calc-profit" class="text-base text-emerald-600">¥28,500</span>
             </div>
+          </div>
+        </div>
+
+        <button onclick="submitNewArtworkPost()" class="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-sm shadow-lg transition">
+          この内容でタイムラインに出品・公開する
+        </button>
+      </div>
+
+      <!-- タブ2: 販売者管理ダッシュボード（出品中リスト＆利益管理） -->
+      <div id="seller-panel-manage" class="p-5 overflow-y-auto space-y-4 text-sm flex-1 hidden">
+        <div class="p-4 rounded-2xl bg-slate-900 text-white space-y-2">
+          <p class="text-[11px] text-slate-400">販売者アカウント受取予定総額（手数料5%控除後）</p>
+          <div class="flex items-baseline justify-between">
+            <span id="seller-total-net" class="text-2xl font-extrabold text-emerald-400">¥0</span>
+            <span class="text-[11px] text-slate-300">自動取次エスクロー保護</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-slate-700 mb-2">出品中の作品一覧（販売者ビュー）</h4>
+          <div id="seller-listings-container" class="space-y-2.5">
+            <!-- JSで出品リストを描画 -->
           </div>
         </div>
       </div>
@@ -864,39 +922,39 @@
                 <div class="mt-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3">
                   <div>
                     <div class="flex items-baseline gap-1.5">
+                <!-- 販売価格＆購入アクションバー（購入者向けにすっきり整理・5%表示なし） -->
+                <div class="mt-3 p-3 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3">
+                  <div>
+                    <div class="flex items-baseline gap-1.5">
                       <span class="text-lg font-extrabold text-slate-900">¥${post.price.toLocaleString()}</span>
-                      <span class="text-[11px] text-slate-500">税込・自動取次</span>
+                      <span class="text-[11px] text-slate-500 font-medium">税込・送料込み</span>
                     </div>
-                    <p class="text-[10px] text-slate-400">
-                      仲介手数料5%（¥${fee.toLocaleString()}）含むエスクロー保護取引
+                    <p class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+                      <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
+                      <span>匿名配送・自動取次サポート対応</span>
                     </p>
                   </div>
 
                   ${isSold ? `
-                    <button onclick="openTradeByPostId('${post.id}')" class="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5">
+                    <button onclick="openTradeByPostId('${post.id}')" class="shrink-0 px-4 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5">
                       <i data-lucide="message-square" class="w-3.5 h-3.5 text-emerald-400"></i>
                       <span>取引ルームへ</span>
                     </button>
                   ` : `
-                    <div class="flex items-center gap-2">
-                      <button onclick="openGalleryModal('${post.id}', 0)" class="px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition">
-                        詳細
-                      </button>
-                      <button onclick="directCheckout('${post.id}')" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold shadow-sm shadow-rose-600/20 transition">
-                        購入する
-                      </button>
-                    </div>
+                    <button onclick="directCheckout('${post.id}')" class="shrink-0 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold shadow-sm shadow-rose-600/20 transition">
+                      購入手続きへ
+                    </button>
                   `}
                 </div>
 
-                <!-- SNSアクションバー（いいね・コメント・共有） -->
-                <div class="mt-3 flex items-center justify-between text-slate-500 pr-2">
+                <!-- SNSアクションバー（オリジナルアイコン＆名称でクリーンに構成） -->
+                <div class="mt-3 flex items-center justify-between text-slate-500 pr-1">
                   <button onclick="openGalleryModal('${post.id}', 0)" class="flex items-center gap-1.5 hover:text-sky-600 transition text-xs">
                     <i data-lucide="message-circle" class="w-4 h-4"></i>
                     <span>${post.comments.length}</span>
                   </button>
-                  <button onclick="showToast('作品をリポストしました')" class="flex items-center gap-1.5 hover:text-emerald-600 transition text-xs">
-                    <i data-lucide="repeat-2" class="w-4 h-4"></i>
+                  <button onclick="showToast('作品の共有リンクをコピーしました')" class="flex items-center gap-1.5 hover:text-emerald-600 transition text-xs">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
                     <span>${post.reposts}</span>
                   </button>
                   <button onclick="toggleLikeFeed('${post.id}')" class="flex items-center gap-1.5 ${post.liked ? 'text-rose-600 font-bold' : 'hover:text-rose-600'} transition text-xs">
@@ -905,7 +963,7 @@
                   </button>
                   <button onclick="openGalleryModal('${post.id}', 0)" class="flex items-center gap-1 hover:text-slate-900 transition text-xs font-medium">
                     <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
-                    <span>全${post.images.length}枚を見る</span>
+                    <span>全${post.images.length}枚を拡大表示</span>
                   </button>
                 </div>
               </div>
@@ -1109,17 +1167,11 @@
       const post = posts.find(p => p.id === activePostId);
       if (!post) return;
 
-      const fee = Math.floor(post.price * 0.05);
-      const payout = post.price - fee;
-
       document.getElementById('chk-thumb').src = post.images[0].url;
       document.getElementById('chk-cat').textContent = post.category;
       document.getElementById('chk-title').textContent = post.title;
       document.getElementById('chk-author').textContent = `出品者: ${post.author}（${post.handle}）`;
-
       document.getElementById('chk-price').textContent = `¥${post.price.toLocaleString()}`;
-      document.getElementById('chk-fee').textContent = `¥${fee.toLocaleString()}`;
-      document.getElementById('chk-payout').textContent = `¥${payout.toLocaleString()}`;
 
       const modal = document.getElementById('checkout-modal');
       modal.classList.remove('hidden');
@@ -1218,7 +1270,7 @@
       document.getElementById('room-thumb').src = trade.thumb;
       document.getElementById('room-title').textContent = trade.title;
       document.getElementById('room-breakdown').textContent =
-        `総額 ¥${trade.price.toLocaleString()}（手数料5%: ¥${trade.fee.toLocaleString()} / 作家受取: ¥${trade.payout.toLocaleString()}）`;
+        `お支払い総額 ¥${trade.price.toLocaleString()}（エスクロー保護中）`;
 
       updateTradeRoomUI(trade);
 
@@ -1367,15 +1419,106 @@
     }
 
     // =========================================================================
-    // 8. 新規作品出品（SNS投稿）モーダル＆リアルタイム5%計算
+    // 8. 販売者専用ポップアップ（新規出品フォーム ＆ 販売者管理ダッシュボード）
     // =========================================================================
-    function openCreatePostModal() {
+    let uploadedSellerImages = [];
+
+    function openCreatePostModal(defaultTab = 'create') {
+      uploadedSellerImages = [];
       updatePresetPreview();
       recalculateNewPostFee();
+      switchSellerTab(defaultTab);
       const modal = document.getElementById('create-post-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       lucide.createIcons();
+    }
+
+    function switchSellerTab(tabName) {
+      const createTab = document.getElementById('seller-tab-create');
+      const manageTab = document.getElementById('seller-tab-manage');
+      const createPanel = document.getElementById('seller-panel-create');
+      const managePanel = document.getElementById('seller-panel-manage');
+
+      if (tabName === 'create') {
+        createTab.className = 'flex-1 py-3 text-center border-b-2 border-slate-900 text-slate-900 bg-white transition';
+        manageTab.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition';
+        createPanel.classList.remove('hidden');
+        managePanel.classList.add('hidden');
+      } else {
+        manageTab.className = 'flex-1 py-3 text-center border-b-2 border-slate-900 text-slate-900 bg-white transition';
+        createTab.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition';
+        managePanel.classList.remove('hidden');
+        createPanel.classList.add('hidden');
+        renderSellerDashboard();
+      }
+      lucide.createIcons();
+    }
+
+    function renderSellerDashboard() {
+      const container = document.getElementById('seller-listings-container');
+      let totalNet = 0;
+
+      container.innerHTML = posts.map(p => {
+        const fee = Math.floor(p.price * 0.05);
+        const net = p.price - fee;
+        if (p.status !== 'ON_SALE') totalNet += net;
+
+        return `
+          <div class="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img src="${p.images[0].url}" class="w-12 h-12 rounded-lg object-cover border border-slate-200 shrink-0" />
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${p.status === 'ON_SALE' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-800'}">
+                    ${p.status === 'ON_SALE' ? '出品中' : '成約・取引中'}
+                  </span>
+                  <span class="text-[10px] text-slate-400">${p.category}</span>
+                </div>
+                <p class="font-bold text-xs text-slate-900 truncate mt-0.5">${p.title}</p>
+                <p class="text-[11px] text-slate-500">
+                  販売額 ¥${p.price.toLocaleString()} → <strong class="text-emerald-700">手取り ¥${net.toLocaleString()}</strong>（手数料5%: ¥${fee.toLocaleString()}）
+                </p>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('seller-total-net').textContent = `¥${totalNet.toLocaleString()}`;
+    }
+
+    function handleSellerPhotoUpload(event) {
+      const files = Array.from(event.target.files || []);
+      if (files.length === 0) return;
+
+      uploadedSellerImages = [];
+      let loadedCount = 0;
+      files.slice(0, 6).forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          uploadedSellerImages.push({
+            url: e.target.result,
+            label: `アップロード写真 ${index + 1}`
+          });
+          loadedCount++;
+          if (loadedCount === Math.min(files.length, 6)) {
+            renderUploadedPreviewStrip();
+            showToast(`${uploadedSellerImages.length}枚の写真を読み込みました`);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderUploadedPreviewStrip() {
+      const strip = document.getElementById('new-photo-preview-strip');
+      strip.innerHTML = uploadedSellerImages.map(img => `
+        <div class="shrink-0 w-20 flex flex-col items-center gap-1">
+          <img src="${img.url}" class="w-20 h-20 rounded-xl object-cover border border-slate-200 bg-white" />
+          <span class="text-[10px] text-slate-500 truncate w-full text-center">${img.label}</span>
+        </div>
+      `).join('');
     }
 
     function closeCreatePostModal() {
@@ -1425,13 +1568,15 @@
 
     function submitNewArtworkPost() {
       const cat = getSelectedNewCategory();
+      const authorInput = document.getElementById('new-author');
       const titleInput = document.getElementById('new-title');
       const descInput = document.getElementById('new-desc');
       const priceInput = document.getElementById('new-price');
 
+      const authorName = authorInput.value.trim() || 'あなた（出品作家）';
       const title = titleInput.value.trim() || `『新作${cat}作品』一点ものオリジナル`;
       const description = descInput.value.trim() || 'アトリエで制作したばかりの新作です。複数角度の写真から質感をご覧ください。購入後は自動取次システムで丁寧に梱包・発送いたします。';
-      const price = Math.max(500, parseInt(priceInput.value, 10) || 20000);
+      const price = Math.max(500, parseInt(priceInput.value, 10) || 30000);
 
       const labels = cat === '書道'
         ? ['正面全体', '筆致アップ', '落款印', '展示イメージ']
@@ -1445,11 +1590,18 @@
           ? ['#0f172a', '#1e3a8a', '#f1f5f9', '#f8fafc']
           : ['#18181b', '#1f1f23', '#27272a', '#e4e4e7'];
 
+      const finalImages = uploadedSellerImages.length > 0
+        ? uploadedSellerImages
+        : [0, 1, 2, 3].map(idx => ({
+            url: createArtDataUri(cat, idx, bgColors[idx], '#18181b'),
+            label: labels[idx]
+          }));
+
       const newPost = {
         id: 'post-' + Date.now(),
-        author: 'あなた（出品作家）',
+        author: authorName,
         handle: '@my_art_studio',
-        avatar: createAvatarUri('#0284c7', '作'),
+        avatar: createAvatarUri('#0284c7', authorName.charAt(0) || '作'),
         timeAgo: 'たった今',
         category: cat,
         title,
@@ -1460,16 +1612,14 @@
         likes: 1,
         reposts: 0,
         followed: false,
-        images: [0, 1, 2, 3].map(idx => ({
-          url: createArtDataUri(cat, idx, bgColors[idx], '#18181b'),
-          label: labels[idx]
-        })),
+        images: finalImages,
         comments: []
       };
 
       posts.unshift(newPost);
       titleInput.value = '';
       descInput.value = '';
+      uploadedSellerImages = [];
 
       closeCreatePostModal();
       setCategoryFilter('ALL');
